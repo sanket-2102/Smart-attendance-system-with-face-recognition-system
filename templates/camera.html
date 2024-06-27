@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Click Your Photo</title>
+    <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+            font-family: Arial, sans-serif;
+        }
+
+        .camera-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .video-photo-container {
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+            justify-content: center;
+            gap: 20px; /* Add some gap between video and result canvas */
+        }
+
+        video, canvas {
+            width: 100%;
+            max-width: 400px;
+            height: auto;
+            border: 1px solid #ccc;
+            border-radius: 10px;
+        }
+
+        .button-container {
+            margin-top: 10px;
+        }
+
+        button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            padding: 10px;
+            margin: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        button i {
+            margin-right: 5px;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+
+        form {
+            margin-top: 10px;
+        }
+
+        #result {
+            display: none;
+            max-width: 400px;
+        }
+    </style>
+    <!-- Include Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+</head>
+<body>
+    <h1>Passport Photo App</h1>
+    <div class="camera-container">
+        <div class="video-photo-container">
+            <video id="video" autoplay></video>
+            <canvas id="result"></canvas>
+        </div>
+        <canvas id="canvas" style="display:none;"></canvas>
+        <div class="button-container">
+            <button id="snap"><i class="fas fa-camera"></i> Capture Photo</button>
+            <button id="save" style="display:none;"><i class="fas fa-save"></i> Save Photo</button>
+        </div>
+        <form id="photo-form" method="post" action="/save_photo">
+            <input type="hidden" name="photo" id="photo">
+            <input type="hidden" name="userid" value="{{ userid }}">
+        </form>
+    </div>
+    <script>
+        // Get access to the camera
+        navigator.mediaDevices.getUserMedia({ video: true })
+            .then(function(stream) {
+                var video = document.getElementById('video');
+                video.srcObject = stream;
+                video.play();
+            })
+            .catch(function(err) {
+                console.log("An error occurred: " + err);
+            });
+
+        // Capture photo
+        document.getElementById('snap').addEventListener('click', function() {
+            var canvas = document.getElementById('canvas');
+            var context = canvas.getContext('2d');
+            var video = document.getElementById('video');
+            context.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+            // Show the captured image as passport-size photo with face detection
+            var resultCanvas = document.getElementById('result');
+            var resultContext = resultCanvas.getContext('2d');
+
+            // Get the image data URL from the canvas
+            var dataURL = canvas.toDataURL('image/png');
+
+            // Create an image element to load the captured photo
+            var img = new Image();
+            img.onload = function() {
+                // Resize the result canvas to a fixed size for passport photo (adjust as needed)
+                var photoWidth = 200; // Width of passport photo
+                var photoHeight = 250; // Height of passport photo
+                resultCanvas.width = photoWidth;
+                resultCanvas.height = photoHeight;
+                resultContext.drawImage(img, 0, 0, photoWidth, photoHeight);
+                resultCanvas.style.display = 'block';
+
+                // Show the save button after capturing and processing the photo
+                document.getElementById('save').style.display = 'block';
+            };
+            img.src = dataURL;
+
+            // Set the captured photo data URL in the hidden input field for form submission
+            document.getElementById('photo').value = dataURL;
+        });
+
+        // Save photo button click handler
+        document.getElementById('save').addEventListener('click', function() {
+            document.getElementById('photo-form').submit();
+        });
+    </script>
+</body>
+</html>
