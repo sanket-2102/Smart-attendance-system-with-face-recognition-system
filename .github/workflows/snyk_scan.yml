@@ -15,4 +15,3 @@ jobs:
           args: --severity-threshold=high --sarif-file-output=snyk.sarif
       - name: Print Synk Sarif file
         run : cat snyk.sarif
-      - name: Total Security Issues
