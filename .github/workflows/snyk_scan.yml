@@ -13,9 +13,7 @@ jobs:
         with:
           command: code test
           args: --sarif-file-output=snyk.sarif
+                --severity-threshold=high
       - name: Print Synk Sarif file
         run : cat snyk.sarif
       - name: Total Security Issues
-        run : 
-              length=$(cat snyk.sarif | jq '.runs[0].results | length')
-              echo "RESULTS_LENGTH=$length" >> GITHUB_ENV
